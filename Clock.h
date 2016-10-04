@@ -16,10 +16,10 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 */
 
 #define POINT_DIAMETER		4
-#define WIDTH(r)			(r.right-r.left)
-#define HEIGHT(r)			(r.bottom-r.top)
-#define IDM_QUIT			1729
-#define IDM_SOUND			1024
+#define WIDTH(r)			    (r.right-r.left)
+#define HEIGHT(r)			    (r.bottom-r.top)
+#define IDM_QUIT			    1729
+#define IDM_SOUND			    1024
 
 #ifndef M_PI
 #define M_PI				acos(-1.0)
