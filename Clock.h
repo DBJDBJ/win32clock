@@ -10,8 +10,8 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <stdio.h>
 #include <mmsystem.h>
 
+// If you want a Circle Clock, uncomment the following comment
 /*
-  // If you want a Circle Clock
   #define CIRCLE_CLOCK
 */
 
