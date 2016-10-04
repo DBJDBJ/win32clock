@@ -6,5 +6,11 @@
 
 ### Screenshots
 
+> Square Clock
+
 ![Image](/Untitled.png)
 ![Image](/Untitled0.png)
+
+> Circle Clock
+
+![Image](/Untitled1.png)
