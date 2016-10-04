@@ -10,6 +10,11 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <stdio.h>
 #include <mmsystem.h>
 
+/*
+  // If you want a Circle Clock
+  #define CIRCLE_CLOCK
+*/
+
 #define POINT_DIAMETER		4
 #define WIDTH(r)			(r.right-r.left)
 #define HEIGHT(r)			(r.bottom-r.top)
