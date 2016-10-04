@@ -7,7 +7,7 @@
 
 // Global Variables:
 HINSTANCE hInst;
-SoundPlayer *tick, *tock;
+// SoundPlayer *tick, *tock;
 TCHAR szTitle[] = TEXT("Clock");
 TCHAR szWindowClass[] = TEXT("[x0r-Cl0ck]");
 TCHAR buf[100];
@@ -179,7 +179,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetWindowRect(hWnd, &r);
 			POINT pt = {0};
 			GetCursorPos(&pt);
-			MoveWindow(hWnd, pt.x-(r.right-r.left)/2, pt.y-(r.bottom-r.top)/2, r.right-r.left, r.bottom-r.top, TRUE);
+			MoveWindow(hWnd, pt.x-WIDTH(r)/2, pt.y-HEIGHT(r)/2, r.right-r.left, r.bottom-r.top, TRUE);
 		}
 		break;
 	case WM_RBUTTONUP:
@@ -214,7 +214,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			GetClientRect(hWnd, &r);
 			SetMapMode(hdc, MM_ISOTROPIC);
-			SetViewportOrgEx(hdc, r.left+(r.right-r.left)/2, r.top+(r.bottom-r.top)/2, NULL);
+			SetViewportOrgEx(hdc, r.left + WIDTH(r)/2, r.top + HEIGHT(r)/2, NULL);
 			XFORM xf;
 			ZeroMemory(&xf, sizeof(xf));
 			xf.eM11 = 1;
@@ -271,7 +271,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// draw points ...
 
-			radius = min((r.right - r.left) / 2, (r.bottom - r.top) / 2) - 10;
+			radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
 			for (int theta = 0; theta <= 360; theta += 6) {
 				sx = (int) radius * sin(theta * M_PI / 180.0);
 				sy = (int) radius * cos(theta * M_PI / 180.0);
