@@ -5,6 +5,9 @@
 // #include "SoundPlayer.h"
 #include "Clock.h"
 
+using namespace Gdiplus;
+#pragma comment (lib,"Gdiplus.lib")
+
 // Global Variables:
 HINSTANCE hInst;
 HWND hApp;
@@ -14,7 +17,7 @@ TCHAR szWindowClass[] = TEXT("[x0r-Cl0ck]");
 TCHAR buf[100];
 TCHAR szUserName[100];
 TCHAR* szWelcome[] = { TEXT("Good Morning"), TEXT("Good Afternoon"), TEXT("Good Evening"), TEXT("Good Night") };
-TCHAR* days[] = { NULL, TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
+TCHAR* days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
 TCHAR* months[] = {
     NULL, TEXT("January"), TEXT("February"), TEXT("March"), TEXT("April"), TEXT("May"), TEXT("June"),
     TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December")
@@ -25,7 +28,7 @@ int GetWelcomeMessage();
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-void Line(HDC, int, int, int, int);
+void Line(HDC, int, int, int, int, int, int);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -67,13 +70,18 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
-
     return (int)msg.wParam;
 }
 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEX wcex;
+
+	GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR           gdiplusToken;
+
+	// Initialize GDI+.
+	GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS | CS_DROPSHADOW;
@@ -113,7 +121,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int wmId, wmEvent, radius, sy, sx;
+    int radius, sy, sx;
     UINT uState;
     static POINT del;
     static LONG pStyle;
@@ -319,24 +327,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			pHour.y = (LONG)radius * cos(sysTime.wHour * 30 * RADIAN);
 			pHour.x = (LONG)radius * sin(sysTime.wHour * 30 * RADIAN);
 
-			HPEN hSPen = CreatePen(PS_SOLID | PS_ENDCAP_ROUND | PS_JOIN_ROUND, SECOND_WIDTH, 0x003686f7);
-			HPEN hMPen = CreatePen(PS_SOLID | PS_ENDCAP_ROUND | PS_JOIN_ROUND, MINUTE_WIDTH, 0x003ec182);
-			HPEN hHPen = CreatePen(PS_SOLID | PS_ENDCAP_ROUND | PS_JOIN_ROUND, HOUR_WIDTH, 0x00f8bc0c);
-
 			// ... draw hands ...
 
-			HGDIOBJ hObj = SelectObject(hdc, hHPen);
-			Line(hdc, 0, 0, pHour.x, pHour.y);
-			DeleteObject(hHPen);
-
-			SelectObject(hdc, hMPen);
-			Line(hdc, 0, 0, pMin.x, pMin.y);
-			DeleteObject(hMPen);
-
-			SelectObject(hdc, hSPen);
-			Line(hdc, 0, 0, pSec.x, pSec.y);
-			//MakeArrow(hdc, 0, 0, 20, (int) _hypot(pSec.x, pSec.y), sysTime.wHour*30, _hypot(pSec.x, pSec.y));
-			DeleteObject(hSPen);
+			Line(hdc, 0, 0, pHour.x, pHour.y, 0xff0cbcf8, HOUR_WIDTH);
+			Line(hdc, 0, 0, pMin.x, pMin.y, 0xff3ec182, MINUTE_WIDTH);
+			Line(hdc, 0, 0, pSec.x, pSec.y, 0xfff78636, SECOND_WIDTH);
 
 			obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 			Ellipse(hdc, -POINT_DIAMETER * 2, -POINT_DIAMETER * 2, POINT_DIAMETER * 2, POINT_DIAMETER * 2);
@@ -387,12 +382,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void Line(HDC hdc, int sx, int sy, int ex, int ey)
+void Line(HDC hDC, int sx, int sy, int ex, int ey, int clr, int w)
 {
-    int width = 20;
-    int dx = 0;
-    POINT pt[] = { sx, sy, ex, ey, ex - dx, ey - dx, ex + dx, ey + dx, ex, ey, sx, sy };
-    Polyline(hdc, pt, 6);
+    ////int width = 20;
+    //int dx = 0;
+    // POINT pt[] = { sx, sy, ex, ey, ex - dx, ey - dx, ex + dx, ey + dx, ex, ey, sx, sy };
+    // Polyline(hdc, pt, 6);
+	Graphics g(hDC);
+	g.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
+	Pen p(Color(clr), w);
+	p.SetEndCap(LineCap::LineCapArrowAnchor);
+	g.DrawLine(&p, sx, sy, ex, ey);
 }
 
 int GetWelcomeMessage()
