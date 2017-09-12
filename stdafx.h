@@ -7,6 +7,7 @@
 
 #include "targetver.h"
 
+#define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
@@ -22,3 +23,5 @@
 #include <gdiplus.h>
 
 // TODO: reference additional headers your program requires here
+#define DBJ_USE_SOUNDS  1==0
+

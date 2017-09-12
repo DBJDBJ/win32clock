@@ -34,3 +34,45 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #ifndef RADIAN
 #define RADIAN				0.017453292519943295
 #endif
+
+using namespace Gdiplus;
+#pragma comment (lib,"Gdiplus.lib")
+
+__forceinline void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
+{
+	////int width = 20;
+	//int dx = 0;
+	// POINT pt[] = { sx, sy, ex, ey, ex - dx, ey - dx, ex + dx, ey + dx, ex, ey, sx, sy };
+	// Polyline(hdc, pt, 6);
+	Gdiplus::Graphics g(hDC);
+	g.SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
+	auto calculated_color = Gdiplus::Color::Color(clr);
+	Gdiplus::Pen p( calculated_color, w);
+	p.SetEndCap(Gdiplus::LineCap::LineCapArrowAnchor);
+	g.DrawLine(&p, sx, sy, ex, ey);
+}
+
+TCHAR * szWelcome[] = { TEXT("Good Morning"), TEXT("Good Afternoon"), TEXT("Good Evening"), TEXT("Good Night") };
+TCHAR* days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
+TCHAR* months[] = {
+	NULL, TEXT("January"), TEXT("February"), TEXT("March"), TEXT("April"), TEXT("May"), TEXT("June"),
+	TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December")
+};
+
+__forceinline  int GetWelcomeMessage()
+{
+	SYSTEMTIME time;
+	GetLocalTime(&time);
+	if (time.wHour >= 4 && time.wHour < 12) {
+		return 0;
+	}
+	else if (time.wHour >= 12 && time.wHour < 16) {
+		return 1;
+	}
+	else if (time.wHour >= 16 && time.wHour < 20) {
+		return 2;
+	}
+	else {
+		return 3;
+	}
+}

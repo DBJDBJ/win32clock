@@ -2,33 +2,30 @@
 // @author : x0r
 
 #include "stdafx.h"
-// #include "SoundPlayer.h"
+#if DBJ_USE_SOUNDS
+#include "SoundPlayer.h"
+#endif
 #include "Clock.h"
-
-using namespace Gdiplus;
-#pragma comment (lib,"Gdiplus.lib")
 
 // Global Variables:
 HINSTANCE hInst;
 HWND hApp;
-// SoundPlayer *tick, *tock;
+#if DBJ_USE_SOUNDS
+SoundPlayer *tick, *tock;
+#endif
 TCHAR szTitle[] = TEXT("Clock");
 TCHAR szWindowClass[] = TEXT("[x0r-Cl0ck]");
 TCHAR buf[100];
 TCHAR szUserName[100];
-TCHAR* szWelcome[] = { TEXT("Good Morning"), TEXT("Good Afternoon"), TEXT("Good Evening"), TEXT("Good Night") };
-TCHAR* days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
-TCHAR* months[] = {
-    NULL, TEXT("January"), TEXT("February"), TEXT("March"), TEXT("April"), TEXT("May"), TEXT("June"),
-    TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December")
-};
 
 // Forward declarations of functions included in this code module:
-int GetWelcomeMessage();
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+/*
+int GetWelcomeMessage();
 void Line(HDC, int, int, int, int, int, int);
+*/
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -62,7 +59,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     GetUserName(szUserName, &dwSize);
     UpdateWindow(hApp);
 
-    HCURSOR hCur = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR3));
+    HCURSOR hCur = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
     SetProp(hApp, TEXT("CURSOR-3"), hCur);
 
     // Main message loop:
@@ -89,7 +86,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = 0;
     wcex.hInstance = hInstance;
-    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CLOCK));
+    wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
     wcex.hCursor = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
     wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wcex.lpszMenuName = NULL;
@@ -121,7 +118,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    int radius, sy, sx;
+	/*int*/ LONG radius; 
+	double sy, sx;
     UINT uState;
     static POINT del;
     static LONG pStyle;
@@ -142,9 +140,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			case IDM_QUIT:
 				DestroyWindow(hApp);
 				break;
+#if DBJ_USE_SOUNDS
 			case IDM_SOUND:
 				bSound = ~bSound;
 				break;
+#endif
 			case IDM_CIRCLE: {
 				fCircle = ~fCircle;
 				if (fCircle) {
@@ -212,9 +212,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_CIRCLE, TEXT("&Circle Clock"));
 			CheckMenuItem(hMenu, IDM_CIRCLE, fCircle);
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+#if DBJ_USE_SOUNDS
 			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_SOUND, TEXT("Enable &Sound"));
 			CheckMenuItem(hMenu, IDM_SOUND, bSound);
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
+#endif
 			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_TOPMOST, TEXT("&Always On Top"));
 			CheckMenuItem(hMenu, IDM_TOPMOST, bTopmost);
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
@@ -293,8 +295,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
 			for (int theta = 6; theta <= 360; theta += 6) {
-				sx = (int)radius * sin(theta * RADIAN);
-				sy = (int)radius * cos(theta * RADIAN);
+				sx = /*(int)*/radius * sin(theta * RADIAN);
+				sy = /*(int)*/radius * cos(theta * RADIAN);
 				if (theta % 30 == 0) {
 					Ellipse(hdc, sx - 2 * POINT_DIAMETER, sy - 2 * POINT_DIAMETER, sx + 2 * POINT_DIAMETER, sy + 2 * POINT_DIAMETER);
 					//if (theta % 45 == 0) {
@@ -303,8 +305,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SIZE txtW;
 					GetTextExtentPoint32(hdc, buf, _tcsclen(buf), &txtW);
 					SetTextAlign(hdc, TA_BASELINE | TA_CENTER);
-					sx = (int)(radius - 25) * sin(theta * RADIAN);
-					sy = (int)(radius - 25) * cos(theta * RADIAN);
+					sx = /*(int)*/(radius - 25) * sin(theta * RADIAN);
+					sy = /*(int)*/(radius - 25) * cos(theta * RADIAN);
 					TextOut(hdc, sx - txtW.cx / 2, sy - txtW.cy / 2, buf, _tcsclen(buf));
 					//}
 				}
@@ -338,6 +340,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			DeleteObject(GetStockObject(BLACK_BRUSH));
 
 			SelectObject(hdc, obj);
+#if DBJ_USE_SOUNDS
 			// ... play sound ...
 			if (bSound & !fMoving) {
 				if (sysTime.wSecond & 1) {
@@ -351,7 +354,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					//tock->Play();
 				}
 			}
-
+#endif
 			EndPaint(hWnd, &ps);
 		} break;
 
@@ -382,33 +385,3 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void Line(HDC hDC, int sx, int sy, int ex, int ey, int clr, int w)
-{
-    ////int width = 20;
-    //int dx = 0;
-    // POINT pt[] = { sx, sy, ex, ey, ex - dx, ey - dx, ex + dx, ey + dx, ex, ey, sx, sy };
-    // Polyline(hdc, pt, 6);
-	Graphics g(hDC);
-	g.SetSmoothingMode(SmoothingMode::SmoothingModeAntiAlias);
-	Pen p(Color(clr), w);
-	p.SetEndCap(LineCap::LineCapArrowAnchor);
-	g.DrawLine(&p, sx, sy, ex, ey);
-}
-
-int GetWelcomeMessage()
-{
-    SYSTEMTIME time;
-    GetLocalTime(&time);
-    if (time.wHour >= 4 && time.wHour < 12) {
-        return 0;
-    }
-    else if (time.wHour >= 12 && time.wHour < 16) {
-        return 1;
-    }
-    else if (time.wHour >= 16 && time.wHour < 20) {
-        return 2;
-    }
-    else {
-        return 3;
-    }
-}
