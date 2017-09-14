@@ -120,14 +120,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	/*int*/ LONG radius; 
 	double sy, sx;
-    UINT uState;
+    // UINT uState;
     static POINT del;
     static LONG pStyle;
     PAINTSTRUCT ps;
     HDC hdc;
     HGDIOBJ obj;
     static HMENU hMenu;
+#if DBJ_USE_SOUNDS
     static BOOL bSound = FALSE;
+#endif
     static BOOL fMoving = FALSE;
     static BOOL fCircle = FALSE;
     static BOOL bTopmost = FALSE;
@@ -226,8 +228,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);
 		} break;
 		case WM_PAINT: {
-			SYSTEMTIME sysTime;
-			GetLocalTime(&sysTime);
+			SYSTEMTIME localTime;
+			GetLocalTime(&localTime);
 
 			hdc = BeginPaint(hWnd, &ps);
 			SetBkMode(hdc, TRANSPARENT);
@@ -250,14 +252,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			SIZE tz;
 			ZeroMemory(buf, sizeof buf);
-			_stprintf(buf, TEXT("%02i:%02i:%02i"), sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
+			_stprintf(buf, TEXT("%02i:%02i:%02i"), localTime.wHour, localTime.wMinute, localTime.wSecond);
 			SIZE_T len = _tcslen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
 			TextOut(hdc, -tz.cx / 2, min(WIDTH(r), HEIGHT(r)) / 4, buf, len);
 
 			ZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) >= 300 && WIDTH(r) >= 300) {
-				_stprintf(buf, TEXT("Hii %s, %s !"), szUserName, szWelcome[GetWelcomeMessage()]);
+				_stprintf(buf, TEXT("Hii %s, %s !"), szUserName, GetWelcomeMessage());
 			}
 			else {
 				_stprintf(buf, TEXT("Hii %s"), szUserName);
@@ -269,10 +271,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			ZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%.3s"), days[sysTime.wDayOfWeek]);
+				_stprintf(buf, TEXT("%.3s"), days[localTime.wDayOfWeek]);
 			}
 			else {
-				_tcscpy(buf, days[sysTime.wDayOfWeek]);
+				_tcscpy(buf, days[localTime.wDayOfWeek]);
 			}
 			len = lstrlen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -282,10 +284,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RtlZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%02d-%.3s-%d"), sysTime.wDay, months[sysTime.wMonth], sysTime.wYear);
+				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months[localTime.wMonth], localTime.wYear);
 			}
 			else {
-				_stprintf(buf, TEXT("%s %02d, %d"), months[sysTime.wMonth], sysTime.wDay, sysTime.wYear);
+				_stprintf(buf, TEXT("%s %02d, %d"), months[localTime.wMonth], localTime.wDay, localTime.wYear);
 			}
 			len = _tcsclen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -320,14 +322,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			POINT pMin, pSec, pHour;
 			radius -= 4 * POINT_DIAMETER;
-			pSec.y = (LONG)radius * cos(sysTime.wSecond * 6 * RADIAN);
-			pSec.x = (LONG)radius * sin(sysTime.wSecond * 6 * RADIAN);
+			pSec.y = (LONG)radius * cos(localTime.wSecond * 6 * RADIAN);
+			pSec.x = (LONG)radius * sin(localTime.wSecond * 6 * RADIAN);
 			radius -= 6 * POINT_DIAMETER;
-			pMin.y = (LONG)radius * cos(sysTime.wMinute * 6 * RADIAN);
-			pMin.x = (LONG)radius * sin(sysTime.wMinute * 6 * RADIAN);
+			pMin.y = (LONG)radius * cos(localTime.wMinute * 6 * RADIAN);
+			pMin.x = (LONG)radius * sin(localTime.wMinute * 6 * RADIAN);
 			radius -= 8 * POINT_DIAMETER;
-			pHour.y = (LONG)radius * cos(sysTime.wHour * 30 * RADIAN);
-			pHour.x = (LONG)radius * sin(sysTime.wHour * 30 * RADIAN);
+#define DBJ_HOUR_HAND_DRAWING_CLUDGE
+#ifndef DBJ_HOUR_HAND_DRAWING_CLUDGE
+			pHour.y = (LONG)radius * cos(localTime.wHour * 30 * RADIAN);
+			pHour.x = (LONG)radius * sin(localTime.wHour * 30 * RADIAN);
+#else
+			pHour.y = (LONG)radius * cos((1 + localTime.wHour) * 30 * RADIAN);
+			pHour.x = (LONG)radius * sin((1 + localTime.wHour) * 30 * RADIAN);
+#endif // !DBJ_HOUR_HAND_DRAWING_CLUDGE
+#undef DBJ_HOUR_HAND_DRAWING_CLUDGE
+
 
 			// ... draw hands ...
 
@@ -343,7 +353,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 #if DBJ_USE_SOUNDS
 			// ... play sound ...
 			if (bSound & !fMoving) {
-				if (sysTime.wSecond & 1) {
+				if (localTime.wSecond & 1) {
 					PlaySound(MAKEINTRESOURCE(IDR_TOCK), hInst, SND_SYNC | SND_RESOURCE);
 					//tock->Stop();
 					//tick->Play();
