@@ -13,10 +13,10 @@ HWND hApp;
 #if DBJ_USE_SOUNDS
 SoundPlayer *tick, *tock;
 #endif
-TCHAR szTitle[] = TEXT("Clock");
-TCHAR szWindowClass[] = TEXT("[x0r-Cl0ck]");
-TCHAR buf[100];
-TCHAR szUserName[100];
+static TCHAR szTitle[] = TEXT("Clock");
+static TCHAR szWindowClass[] = TEXT("[dbj.systems-win32.clock]");
+static TCHAR buf[100] = {} ;
+static TCHAR szUserName[100] = {} ;
 
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
@@ -118,8 +118,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	using namespace dbj;
 	/*int*/ LONG radius; 
-	double sy, sx;
+	UINT sy = 0, sx = 0;
     // UINT uState;
     static POINT del;
     static LONG pStyle;
@@ -259,7 +260,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			ZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) >= 300 && WIDTH(r) >= 300) {
-				_stprintf(buf, TEXT("Hii %s, %s !"), szUserName, GetWelcomeMessage());
+				_stprintf(buf, TEXT("Hii %s, %s !"), szUserName, dbj::GetWelcomeMessage());
 			}
 			else {
 				_stprintf(buf, TEXT("Hii %s"), szUserName);
@@ -271,10 +272,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			ZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%.3s"), days[localTime.wDayOfWeek]);
+				_stprintf(buf, TEXT("%.3s"), days(localTime.wDayOfWeek));
 			}
 			else {
-				_tcscpy(buf, days[localTime.wDayOfWeek]);
+				_tcscpy(buf, days(localTime.wDayOfWeek));
 			}
 			len = lstrlen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -284,10 +285,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RtlZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months[localTime.wMonth], localTime.wYear);
+				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months(localTime.wMonth), localTime.wYear);
 			}
 			else {
-				_stprintf(buf, TEXT("%s %02d, %d"), months[localTime.wMonth], localTime.wDay, localTime.wYear);
+				_stprintf(buf, TEXT("%s %02d, %d"), months(localTime.wMonth), localTime.wDay, localTime.wYear);
 			}
 			len = _tcsclen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -297,8 +298,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
 			for (int theta = 6; theta <= 360; theta += 6) {
-				sx = /*(int)*/radius * sin(theta * RADIAN);
-				sy = /*(int)*/radius * cos(theta * RADIAN);
+				sx = (UINT)(radius * sin(theta * RADIAN));
+				sy = (UINT)(radius * cos(theta * RADIAN));
 				if (theta % 30 == 0) {
 					Ellipse(hdc, sx - 2 * POINT_DIAMETER, sy - 2 * POINT_DIAMETER, sx + 2 * POINT_DIAMETER, sy + 2 * POINT_DIAMETER);
 					//if (theta % 45 == 0) {
@@ -307,8 +308,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					SIZE txtW;
 					GetTextExtentPoint32(hdc, buf, _tcsclen(buf), &txtW);
 					SetTextAlign(hdc, TA_BASELINE | TA_CENTER);
-					sx = /*(int)*/(radius - 25) * sin(theta * RADIAN);
-					sy = /*(int)*/(radius - 25) * cos(theta * RADIAN);
+					sx = (UINT)((radius - 25) * sin(theta * RADIAN));
+					sy = (UINT)((radius - 25) * cos(theta * RADIAN));
 					TextOut(hdc, sx - txtW.cx / 2, sy - txtW.cy / 2, buf, _tcsclen(buf));
 					//}
 				}
@@ -322,28 +323,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			POINT pMin, pSec, pHour;
 			radius -= 4 * POINT_DIAMETER;
-			pSec.y = (LONG)radius * cos(localTime.wSecond * 6 * RADIAN);
-			pSec.x = (LONG)radius * sin(localTime.wSecond * 6 * RADIAN);
+			pSec.y = (LONG)(radius * cos(localTime.wSecond * 6 * RADIAN));
+			pSec.x = (LONG)(radius * sin(localTime.wSecond * 6 * RADIAN));
 			radius -= 6 * POINT_DIAMETER;
-			pMin.y = (LONG)radius * cos(localTime.wMinute * 6 * RADIAN);
-			pMin.x = (LONG)radius * sin(localTime.wMinute * 6 * RADIAN);
+			pMin.y = (LONG)(radius * cos(localTime.wMinute * 6 * RADIAN));
+			pMin.x = (LONG)(radius * sin(localTime.wMinute * 6 * RADIAN));
 			radius -= 8 * POINT_DIAMETER;
-#define DBJ_HOUR_HAND_DRAWING_CLUDGE
-#ifndef DBJ_HOUR_HAND_DRAWING_CLUDGE
-			pHour.y = (LONG)radius * cos(localTime.wHour * 30 * RADIAN);
-			pHour.x = (LONG)radius * sin(localTime.wHour * 30 * RADIAN);
-#else
-			pHour.y = (LONG)radius * cos((1 + localTime.wHour) * 30 * RADIAN);
-			pHour.x = (LONG)radius * sin((1 + localTime.wHour) * 30 * RADIAN);
-#endif // !DBJ_HOUR_HAND_DRAWING_CLUDGE
-#undef DBJ_HOUR_HAND_DRAWING_CLUDGE
 
+			pHour.y = (LONG)(radius * cos(localTime.wHour * 30 * RADIAN));
+			pHour.x = (LONG)(radius * sin(localTime.wHour * 30 * RADIAN));
 
 			// ... draw hands ...
-
-			Line(hdc, 0, 0, pHour.x, pHour.y, 0xff0cbcf8, HOUR_WIDTH);
-			Line(hdc, 0, 0, pMin.x, pMin.y, 0xff3ec182, MINUTE_WIDTH);
-			Line(hdc, 0, 0, pSec.x, pSec.y, 0xfff78636, SECOND_WIDTH);
+			Line(hdc, 0, 0, pHour.x, pHour.y, Gdiplus::Color::DarkGray, HOUR_WIDTH);
+			Line(hdc, 0, 0, pMin.x, pMin.y,   Gdiplus::Color::DarkGray, MINUTE_WIDTH);
+			Line(hdc, 0, 0, pSec.x, pSec.y,   Gdiplus::Color::Black, SECOND_WIDTH);
 
 			obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 			Ellipse(hdc, -POINT_DIAMETER * 2, -POINT_DIAMETER * 2, POINT_DIAMETER * 2, POINT_DIAMETER * 2);

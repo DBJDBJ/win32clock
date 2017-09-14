@@ -50,15 +50,20 @@ namespace dbj {
 		g.SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
 		auto calculated_color = Gdiplus::Color::Color(clr);
 		Gdiplus::Pen p(calculated_color, w);
-		p.SetEndCap(Gdiplus::LineCap::LineCapArrowAnchor);
+		p.SetEndCap(Gdiplus::LineCap::LineCapRound);
 		g.DrawLine(&p, sx, sy, ex, ey);
 	}
 
-	TCHAR * days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
-	TCHAR * months[] = {
+	__forceinline  TCHAR * days( unsigned int ord_ ) {
+		constexpr static TCHAR * days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
+		return days[ord_];
+    }
+	__forceinline  TCHAR * months(unsigned int ord_) {
+		constexpr static TCHAR * months[] = {
 		NULL, TEXT("January"), TEXT("February"), TEXT("March"), TEXT("April"), TEXT("May"), TEXT("June"),
-		TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December")
-	};
+		TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December") };
+		return months[ord_];
+	}
 
 	__forceinline  TCHAR * GetWelcomeMessage()
 	{
