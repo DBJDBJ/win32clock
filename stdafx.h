@@ -24,4 +24,6 @@
 
 // TODO: reference additional headers your program requires here
 #define DBJ_USE_SOUNDS  1==0
-
+#include "dbjtrace.h"
+#define DBJ_ASSERT _ASSERTE
+#include <string>

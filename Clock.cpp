@@ -35,7 +35,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    HWND hWin = FindWindow(TEXT("[x0r-Cl0ck]"), TEXT("Clock"));
+	TRACEF("Tracing: %s", __argv[0]);
+
+    HWND hWin = FindWindow(TEXT("[dbj.systems-win32.clock]"), TEXT("Clock"));
     if (hWin != NULL) {
         SetForegroundWindow(hWin);
         return 0;
@@ -100,9 +102,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
     hInst = hInstance;
 
-    int width = GetSystemMetrics(SM_CXSCREEN), height = GetSystemMetrics(SM_CYSCREEN);
+    int width = GetSystemMetrics(SM_CXSCREEN), 
+		height = GetSystemMetrics(SM_CYSCREEN);
 
-    hApp = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_LAYERED, szWindowClass, szTitle, 0, width / 2 - 200, height / 2 - 200, 400, 400, NULL, NULL, hInstance, NULL);
+    hApp = CreateWindowEx(WS_EX_TOOLWINDOW | WS_EX_LAYERED, 
+		szWindowClass, szTitle, 0, width / 2 - 200, height / 2 - 200, 400, 400, NULL, NULL, hInstance, NULL);
 
     int dwFlags = WS_BORDER | WS_VISIBLE | WS_SIZEBOX;
 
@@ -119,7 +123,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	using namespace dbj;
-	/*int*/ LONG radius; 
+	/* LONG radius; */
 	UINT sy = 0, sx = 0;
     // UINT uState;
     static POINT del;
@@ -247,7 +251,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ZeroMemory(&lf, sizeof lf);
 			lf.lfHeight = min(WIDTH(r), HEIGHT(r)) >> 4;
 			_tcscpy(lf.lfFaceName, TEXT("Comic Sans MS"));
-			SelectObject(hdc, CreateFontIndirect(&lf));
+			
+			DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, CreateFontIndirect(&lf)));
 
 			// ... display time ...
 
@@ -272,10 +277,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			ZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%.3s"), days(localTime.wDayOfWeek));
+				_stprintf(buf, TEXT("%.3s"), days(localTime));
 			}
 			else {
-				_tcscpy(buf, days(localTime.wDayOfWeek));
+				_tcscpy(buf, days(localTime));
 			}
 			len = lstrlen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -285,10 +290,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			RtlZeroMemory(buf, sizeof buf);
 			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months(localTime.wMonth), localTime.wYear);
+				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months(localTime), localTime.wYear);
 			}
 			else {
-				_stprintf(buf, TEXT("%s %02d, %d"), months(localTime.wMonth), localTime.wDay, localTime.wYear);
+				_stprintf(buf, TEXT("%s %02d, %d"), months(localTime), localTime.wDay, localTime.wYear);
 			}
 			len = _tcsclen(buf);
 			GetTextExtentPoint32(hdc, buf, len, &tz);
@@ -296,7 +301,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// draw points ...
 
-			radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
+			LONG radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
 			for (int theta = 6; theta <= 360; theta += 6) {
 				sx = (UINT)(radius * sin(theta * RADIAN));
 				sy = (UINT)(radius * cos(theta * RADIAN));
@@ -320,7 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 			}
 			DeleteObject(GetStockObject(SYSTEM_FIXED_FONT));
-
+#if 0
 			POINT pMin, pSec, pHour;
 			radius -= 4 * POINT_DIAMETER;
 			pSec.y = (LONG)(radius * cos(localTime.wSecond * 6 * RADIAN));
@@ -337,12 +342,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			Line(hdc, 0, 0, pHour.x, pHour.y, Gdiplus::Color::DarkGray, HOUR_WIDTH);
 			Line(hdc, 0, 0, pMin.x, pMin.y,   Gdiplus::Color::DarkGray, MINUTE_WIDTH);
 			Line(hdc, 0, 0, pSec.x, pSec.y,   Gdiplus::Color::Black, SECOND_WIDTH);
+#endif
+			clock_hands_draw(hdc);
 
 			obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-			Ellipse(hdc, -POINT_DIAMETER * 2, -POINT_DIAMETER * 2, POINT_DIAMETER * 2, POINT_DIAMETER * 2);
+
+			DBJ_ASSERT(obj != NULL);
+			DBJ_ASSERT(obj != HGDI_ERROR);
+
+			Ellipse(hdc, -(POINT_DIAMETER * 2), -(POINT_DIAMETER * 2), POINT_DIAMETER * 2, POINT_DIAMETER * 2);
 			DeleteObject(GetStockObject(BLACK_BRUSH));
 
-			SelectObject(hdc, obj);
+			DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, obj));
 #if DBJ_USE_SOUNDS
 			// ... play sound ...
 			if (bSound & !fMoving) {
