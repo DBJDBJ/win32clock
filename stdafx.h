@@ -13,6 +13,7 @@
 #include <windows.h>
 
 // C RunTime Header Files
+#include <crtdbg.h>
 #include <stdlib.h>
 #include <malloc.h>
 #include <memory.h>
@@ -24,6 +25,11 @@
 
 // TODO: reference additional headers your program requires here
 #define DBJ_USE_SOUNDS  1==0
-#include "dbjtrace.h"
 #define DBJ_ASSERT _ASSERTE
+#include <stdarg.h>
+#include <stdio.h>
+// #include <string.h>
 #include <string>
+#include <vector>
+#include "dbjtrace.h"
+

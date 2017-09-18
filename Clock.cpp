@@ -35,7 +35,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	TRACEF("Tracing: %s", __argv[0]);
+	DBJ_TRACE("%s", __argv[0]);
 
     HWND hWin = FindWindow(TEXT("[dbj.systems-win32.clock]"), TEXT("Clock"));
     if (hWin != NULL) {
