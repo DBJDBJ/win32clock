@@ -11,36 +11,14 @@ inspirators are mentioned in the comments bellow
 
 #include "stdafx.h"
 
-/*
-Tame full path filenames  in __FILE__
-https://stackoverflow.com/questions/8487986/file-macro-shows-full-path/8488201#8488201
-#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-*/
-__forceinline constexpr auto nicer_filename( const char * filename ) {
-	return (strrchr(filename, '\\') ? strrchr(filename, '\\') + 1 : filename);
-}
 
 namespace dbj {
 
-	// https://opensource.apple.com/source/bash/bash-80/bash/lib/sh/strnlen.c
-	/* Find the length of S, but scan at most MAXLEN characters.  If no '\0'
-	terminator is found within the first MAXLEN characters, return MAXLEN. */
-	__forceinline size_t
-		strnlen( register const char *s,	size_t maxlen
-		)
-	{
-		register const char *e;
-		size_t n;
-
-		for (e = s, n = 0; *e && n < maxlen; e++, n++)
-			;
-		return n;
-	}
 
 	namespace dbg {
 
 		template <typename T>
-		__forceinline
+		DBJ_INLINE
 		constexpr auto sizeof_array(const T& iarray) {
 			return (sizeof(iarray) / sizeof(iarray[0]));
 		}
@@ -52,7 +30,7 @@ namespace dbj {
 #endif
 
 		// https://stackoverflow.com/questions/451749/is-there-a-trace-statement-for-basic-win32-c
-		__forceinline void trace( const char * filename, const unsigned int line, const char* const format, ...)
+		inline void trace( const char * filename, const unsigned int line, const char* const format, ...)
 		{
 			std::vector<char> buffer(TRACEMAXSTRING, '\x0') ;
 			auto nicer_name = nicer_filename(filename);

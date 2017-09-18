@@ -1,54 +1,39 @@
 #pragma once
 
-#pragma comment(lib, "winmm.lib")
-#pragma comment(lib, "Gdiplus.lib")
-
-#pragma comment(linker,"\"/manifestdependency:type='win32' \
-name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
-processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
-#include "resource.h"
-#include <math.h>
-#include <stdio.h>
-#include <mmsystem.h>
-#include <winsock.h>
-
-#define OPACITY				180
-#define FACTOR				40
+constexpr static auto OPACITY = 180;
+constexpr static auto FACTOR = 40;
 /*
 #define HOUR_WIDTH			10
 #define MINUTE_WIDTH		6
 #define SECOND_WIDTH		3
 */
 constexpr static INT POINT_DIAMETER = 4;
-#define WIDTH(r)			(r.right-r.left)
-#define HEIGHT(r)			(r.bottom-r.top)
-#define IDM_TOPMOST			2016
-#define IDM_QUIT			1729
-#define IDM_SOUND			1024
-#define IDM_CIRCLE			0xbabe
-#define IDM_RECT			0xcafe
+constexpr static auto WIDTH(RECT r) {	return		(r.right - r.left);}
+constexpr static auto HEIGHT(RECT r) {	return		(r.bottom - r.top);}
+constexpr static auto IDM_TOPMOST = 2016;
+constexpr static auto IDM_QUIT = 1729;
+constexpr static auto IDM_SOUND = 1024;
+constexpr static auto IDM_CIRCLE = 0xbabe;
+constexpr static auto IDM_RECT = 0xcafe;
 
 #ifndef M_PI
-#define M_PI				3.141592653589793
+constexpr static auto  M_PI = 3.141592653589793;
 #endif
 
 #ifndef RADIAN
-#define RADIAN				0.017453292519943295
+constexpr static auto  RADIAN = 0.017453292519943295;
 #endif
-
-using namespace Gdiplus;
-#pragma comment (lib,"Gdiplus.lib")
-
 
 namespace dbj {
 
 
 	//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
-	__forceinline std::string getLastErrorAsString()
+	DBJ_INLINE std::string getLastErrorMessage
+	(
+		DWORD errorMessageID = ::GetLastError()
+	)
 	{
 		//Get the error message, if any.
-		DWORD errorMessageID = ::GetLastError();
 		if (errorMessageID == 0)
 			return std::string(); //No error message has been recorded
 
@@ -64,7 +49,7 @@ namespace dbj {
 		return message;
 	}
 
-	__forceinline void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
+	DBJ_INLINE void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
 	{
 		////int width = 20;
 		//int dx = 0;
@@ -78,18 +63,19 @@ namespace dbj {
 		g.DrawLine(&p, sx, sy, ex, ey);
 	}
 
-	__forceinline  const TCHAR * const days( SYSTEMTIME & time_ ) noexcept {
+	DBJ_INLINE  const TCHAR * const days( SYSTEMTIME & time_ ) noexcept {
 		constexpr static TCHAR * days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
 		return days[ time_.wDayOfWeek ];
     }
-	__forceinline  const TCHAR * const months(SYSTEMTIME & time_) noexcept {
+
+	DBJ_INLINE  const TCHAR * const months(SYSTEMTIME & time_) noexcept {
 		constexpr static TCHAR * months[] = {
 		NULL, TEXT("January"), TEXT("February"), TEXT("March"), TEXT("April"), TEXT("May"), TEXT("June"),
 		TEXT("July"), TEXT("August"), TEXT("September"), TEXT("October"), TEXT("November"), TEXT("December") };
 		return months[time_.wMonth];
 	}
 
-	__forceinline  const TCHAR * const GetWelcomeMessage() noexcept
+	DBJ_INLINE  const TCHAR * const GetWelcomeMessage() noexcept
 	{
 		constexpr static TCHAR * szWelcome[] = { TEXT("Good Morning"), TEXT("Good Afternoon"), TEXT("Good Evening"), TEXT("Good Night") };
 
@@ -98,18 +84,16 @@ namespace dbj {
 		if (time.wHour >= 4 && time.wHour < 12) {
 			return szWelcome[0];
 		}
-		else if (time.wHour >= 12 && time.wHour < 16) {
+		if (time.wHour >= 12 && time.wHour < 16) {
 			return szWelcome[1];
 		}
-		else if (time.wHour >= 16 && time.wHour < 20) {
+		if (time.wHour >= 16 && time.wHour < 20) {
 			return szWelcome[2];
 		}
-		else {
 			return szWelcome[3];
-		}
 	}
 
-	__forceinline  POINT get_width_height(HWND hwnd)
+	DBJ_INLINE  POINT get_width_height(HWND hwnd)
 	{
 		POINT widhgt = {}; RECT rect = {};
 		
@@ -120,7 +104,7 @@ namespace dbj {
 		return widhgt;
 	}
 
-	__forceinline  void clock_hands_draw(HDC hdc)
+	DBJ_INLINE  void clock_hands_draw(HDC hdc)
 	{
 		constexpr static Gdiplus::REAL HOUR_WIDTH = 10;
 		constexpr static Gdiplus::REAL MINUTE_WIDTH = 6;
