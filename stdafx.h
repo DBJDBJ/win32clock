@@ -27,10 +27,39 @@ dbj begins here
 // inline is the keyword, in C++ and C99.
 #define DBJ_INLINE inline
 #define DBJ_USE_SOUNDS  1==0
-#define DBJ_ASSERT _ASSERTE
+#define DBJ_ASSERT /*_ASSERTE*/
 
 // temporary place for a commomn core code
 namespace dbj {
+
+	//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
+	template<typename CHAR_TYPE>
+	DBJ_INLINE auto getLastErrorMessage(
+		const CHAR_TYPE * const prompt = 0, DWORD errorMessageID = ::GetLastError()
+	)
+	{
+		using string = std::basic_string<CHAR_TYPE>;
+		//Get the error message, if any.
+		if (errorMessageID == 0)
+			return string(); //No error message has been recorded
+#ifdef UNICODE
+		LPWSTR messageBuffer = nullptr;
+#else
+		LPSTR messageBuffer = nullptr;
+#endif
+		size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
+
+		string message(messageBuffer, size);
+
+		//Free the buffer.
+		::LocalFree(messageBuffer);
+
+		if (prompt)
+		return string(prompt).append(message);
+
+		return message;
+	}
 
 	/* Find the length of S, but scan at most MAXLEN characters.  If no '\0'
 	terminator is found within the first MAXLEN characters, return MAXLEN.
@@ -52,6 +81,41 @@ namespace dbj {
 	*/
 	DBJ_INLINE constexpr auto nicer_filename(const char * filename) {
 		return (strrchr(filename, '\\') ? strrchr(filename, '\\') + 1 : filename);
+	}
+
+	namespace sysinfo {
+
+		constexpr auto INFO_BUFFER_SIZE = 32767;
+		static TCHAR  infoBuf[INFO_BUFFER_SIZE] = {};
+		static DWORD  bufCharCount = INFO_BUFFER_SIZE;
+		// 
+		DBJ_INLINE auto computer_name () {
+			bufCharCount = INFO_BUFFER_SIZE;
+			if (!GetComputerName(infoBuf, &bufCharCount))
+				throw getLastErrorMessage(TEXT("dbj::sysinfo::computer_name() -- "));
+			return std::basic_string<TCHAR>(infoBuf, bufCharCount);
+		}
+
+		DBJ_INLINE auto user_name() {
+			bufCharCount = INFO_BUFFER_SIZE;
+			if (!GetUserName(infoBuf, &bufCharCount))
+				throw getLastErrorMessage(TEXT("dbj::sysinfo::user_name() -- "));
+			return std::basic_string<TCHAR>(infoBuf, bufCharCount);
+		}
+
+		DBJ_INLINE auto system_directory () {
+			bufCharCount = INFO_BUFFER_SIZE;
+			if (!GetSystemDirectory(infoBuf, INFO_BUFFER_SIZE))
+				throw getLastErrorMessage(TEXT("dbj::sysinfo::system_directory() -- "));
+			return std::basic_string<TCHAR>(infoBuf, dbj::strnlen(infoBuf, INFO_BUFFER_SIZE-1));
+		}
+
+		DBJ_INLINE auto windows_directory() {
+			bufCharCount = INFO_BUFFER_SIZE;
+			if (!GetWindowsDirectory(infoBuf, INFO_BUFFER_SIZE))
+				throw getLastErrorMessage(TEXT("dbj::sysinfo::windows_directory() -- "));
+			return std::basic_string<TCHAR>(infoBuf, dbj::strnlen(infoBuf, INFO_BUFFER_SIZE-1));
+		}
 	}
 
 }

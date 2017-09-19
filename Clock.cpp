@@ -13,19 +13,15 @@ HWND hApp;
 #if DBJ_USE_SOUNDS
 SoundPlayer *tick, *tock;
 #endif
-static TCHAR szTitle[] = TEXT("Clock");
-static TCHAR szWindowClass[] = TEXT("[dbj.systems-win32.clock]");
-static TCHAR buf[100] = {} ;
-static TCHAR szUserName[100] = {} ;
+constexpr static TCHAR szTitle[] = TEXT("Clock");
+constexpr static TCHAR szWindowClass[] = TEXT("[dbj.systems-win32.clock]");
+constexpr static TCHAR buf[100] = {} ;
+// constexpr static TCHAR szUserName[100] = {} ;
 
 // Forward declarations of functions included in this code module:
 ATOM MyRegisterClass(HINSTANCE hInstance);
 BOOL InitInstance(HINSTANCE, int);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-/*
-int GetWelcomeMessage();
-void Line(HDC, int, int, int, int, int, int);
-*/
 
 int APIENTRY _tWinMain(HINSTANCE hInstance,
     HINSTANCE hPrevInstance,
@@ -58,12 +54,12 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     //tock = new SoundPlayer(IDR_TOCK);
 
     DWORD dwSize = 100;
-    GetUserName(szUserName, &dwSize);
+	auto user_name = dbj::sysinfo::user_name(); //  ::GetUserNameA(szUserName, &dwSize);
     UpdateWindow(hApp);
-
+	/*
     HCURSOR hCur = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
     SetProp(hApp, TEXT("CURSOR-3"), hCur);
-
+	*/
     // Main message loop:
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
@@ -129,9 +125,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT del;
     static LONG pStyle;
     PAINTSTRUCT ps;
-    HDC hdc;
-    HGDIOBJ obj;
-    static HMENU hMenu;
+//    HDC hdc;
+//  c obj;
+//    static HMENU hMenu;
 #if DBJ_USE_SOUNDS
     static BOOL bSound = FALSE;
 #endif
@@ -139,7 +135,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static BOOL fCircle = FALSE;
     static BOOL bTopmost = FALSE;
     static BOOL fResized = FALSE;
-    RECT r;
 
     switch (message) {
 		case WM_COMMAND: {
@@ -153,6 +148,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 #endif
 			case IDM_CIRCLE: {
+				RECT r;
 				fCircle = ~fCircle;
 				if (fCircle) {
 					SetWindowLong(hApp, GWL_STYLE, WS_BORDER | WS_VISIBLE);
@@ -172,9 +168,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 			} break;
 			case IDM_TOPMOST: {
-				GetWindowRect(hApp, &r);
+				RECT rectangle = {};
+				GetWindowRect(hApp, &rectangle);
 				bTopmost = ~bTopmost;
-				SetWindowPos(hWnd, bTopmost ? HWND_TOPMOST : HWND_NOTOPMOST, r.left, r.top, WIDTH(r), HEIGHT(r), SWP_FRAMECHANGED);
+				SetWindowPos(hWnd, bTopmost ? HWND_TOPMOST : HWND_NOTOPMOST, rectangle.left, rectangle.top, WIDTH(rectangle), HEIGHT(rectangle), SWP_FRAMECHANGED);
 			} break;
 			}
 		} break;
@@ -215,15 +212,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case WM_RBUTTONUP: {
-			hMenu = CreatePopupMenu();
+			auto hMenu = CreatePopupMenu();
 			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_CIRCLE, TEXT("&Circle Clock"));
 			CheckMenuItem(hMenu, IDM_CIRCLE, fCircle);
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
-#if DBJ_USE_SOUNDS
-			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_SOUND, TEXT("Enable &Sound"));
-			CheckMenuItem(hMenu, IDM_SOUND, bSound);
-			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
-#endif
 			AppendMenu(hMenu, MF_STRING | MF_CHECKED, IDM_TOPMOST, TEXT("&Always On Top"));
 			CheckMenuItem(hMenu, IDM_TOPMOST, bTopmost);
 			AppendMenu(hMenu, MF_SEPARATOR, 0, 0);
@@ -233,156 +225,153 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			TrackPopupMenu(hMenu, TPM_RIGHTBUTTON, pt.x, pt.y, 0, hWnd, NULL);
 		} break;
 		case WM_PAINT: {
+			RECT rectangle = {} ;
 			SYSTEMTIME localTime;
-			GetLocalTime(&localTime);
+			::GetLocalTime(&localTime);
 
-			hdc = BeginPaint(hWnd, &ps);
+			auto hdc = BeginPaint(hWnd, &ps);
+			DBJ_ASSERT(hdc);
 			SetBkMode(hdc, TRANSPARENT);
 
 			// ... set mapping mode ...
 
-			GetClientRect(hWnd, &r);
-			SetMapMode(hdc, MM_ISOTROPIC);
-			SetViewportOrgEx(hdc, WIDTH(r) / 2, HEIGHT(r) / 2, NULL);
-			SetWindowExtEx(hdc, WIDTH(r) / 2, -HEIGHT(r) / 2, NULL);
-			SetViewportExtEx(hdc, WIDTH(r) / 2, HEIGHT(r) / 2, NULL);
+			GetClientRect(hWnd, &rectangle);
 
-			LOGFONT lf;
-			ZeroMemory(&lf, sizeof lf);
-			lf.lfHeight = min(WIDTH(r), HEIGHT(r)) >> 4;
-			_tcscpy(lf.lfFaceName, TEXT("Comic Sans MS"));
-			
-			DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, CreateFontIndirect(&lf)));
+			auto half_width = WIDTH(rectangle) / 2;
+			auto half_height = HEIGHT(rectangle) / 2;
+
+			SetMapMode(hdc, MM_ISOTROPIC);
+			SetViewportOrgEx(hdc, half_width, half_height, NULL);
+			SetWindowExtEx(hdc, half_width, -half_height, NULL);
+			SetViewportExtEx(hdc, half_width, half_height, NULL);
+
 
 			// ... display time ...
+			auto display_time = [&localTime, hdc, rectangle]() {
+				SIZE tz;
+				TCHAR buf[BUFSIZ] = {};
+				SecureZeroMemory(buf, sizeof buf);
+				_stprintf(buf, TEXT("%02i:%02i:%02i"), localTime.wHour, localTime.wMinute, localTime.wSecond);
+				SIZE_T len = _tcslen(buf);
+				GetTextExtentPoint32(hdc, buf, len, &tz);
+				TextOut(hdc, -tz.cx / 2, min(WIDTH(rectangle), HEIGHT(rectangle)) / 4, buf, len);
 
-			SIZE tz;
-			ZeroMemory(buf, sizeof buf);
-			_stprintf(buf, TEXT("%02i:%02i:%02i"), localTime.wHour, localTime.wMinute, localTime.wSecond);
-			SIZE_T len = _tcslen(buf);
-			GetTextExtentPoint32(hdc, buf, len, &tz);
-			TextOut(hdc, -tz.cx / 2, min(WIDTH(r), HEIGHT(r)) / 4, buf, len);
-
-			ZeroMemory(buf, sizeof buf);
-			if (HEIGHT(r) >= 300 && WIDTH(r) >= 300) {
-				_stprintf(buf, TEXT("Hii %s, %s !"), szUserName, dbj::GetWelcomeMessage());
-			}
-			else {
-				_stprintf(buf, TEXT("Hii %s"), szUserName);
-			}
-			len = _tcslen(buf);
-			GetTextExtentPoint32(hdc, buf, len, &tz);
-			TextOut(hdc, -tz.cx / 2, min(WIDTH(r), HEIGHT(r)) / 8, buf, len);
-			// ... display day ...
-
-			ZeroMemory(buf, sizeof buf);
-			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%.3s"), days(localTime));
-			}
-			else {
-				_tcscpy(buf, days(localTime));
-			}
-			len = lstrlen(buf);
-			GetTextExtentPoint32(hdc, buf, len, &tz);
-			TextOut(hdc, -tz.cx / 2, -min(WIDTH(r), HEIGHT(r)) / 4, buf, len);
-
-			// ... display date ...
-
-			RtlZeroMemory(buf, sizeof buf);
-			if (HEIGHT(r) < 300 || WIDTH(r) < 300) {
-				_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months(localTime), localTime.wYear);
-			}
-			else {
-				_stprintf(buf, TEXT("%s %02d, %d"), months(localTime), localTime.wDay, localTime.wYear);
-			}
-			len = _tcsclen(buf);
-			GetTextExtentPoint32(hdc, buf, len, &tz);
-			TextOut(hdc, -tz.cx / 2, -min(WIDTH(r), HEIGHT(r)) / 8, buf, len);
-
-			// draw points ...
-
-			LONG radius = min(WIDTH(r) / 2, HEIGHT(r) / 2) - 10;
-			for (int theta = 6; theta <= 360; theta += 6) {
-				sx = (UINT)(radius * sin(theta * RADIAN));
-				sy = (UINT)(radius * cos(theta * RADIAN));
-				if (theta % 30 == 0) {
-					Ellipse(hdc, sx - 2 * POINT_DIAMETER, sy - 2 * POINT_DIAMETER, sx + 2 * POINT_DIAMETER, sy + 2 * POINT_DIAMETER);
-					//if (theta % 45 == 0) {
-					RtlZeroMemory(buf, sizeof buf);
-					_stprintf(buf, TEXT("%i"), theta / 30);
-					SIZE txtW;
-					GetTextExtentPoint32(hdc, buf, _tcsclen(buf), &txtW);
-					SetTextAlign(hdc, TA_BASELINE | TA_CENTER);
-					sx = (UINT)((radius - 25) * sin(theta * RADIAN));
-					sy = (UINT)((radius - 25) * cos(theta * RADIAN));
-					TextOut(hdc, sx - txtW.cx / 2, sy - txtW.cy / 2, buf, _tcsclen(buf));
-					//}
+				SecureZeroMemory(buf, sizeof buf);
+				if (HEIGHT(rectangle) >= 300 && WIDTH(rectangle) >= 300) {
+					_stprintf(buf, TEXT("Hi %s, %s !"), dbj::sysinfo::user_name().data(), dbj::GetWelcomeMessage());
 				}
 				else {
-					obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-					Ellipse(hdc, sx - POINT_DIAMETER, sy - POINT_DIAMETER, sx + POINT_DIAMETER, sy + POINT_DIAMETER);
-					DeleteObject(GetStockObject(BLACK_BRUSH));
+					_stprintf(buf, TEXT("Hi %s"), dbj::sysinfo::user_name().data());
 				}
-			}
+				len = _tcslen(buf);
+				GetTextExtentPoint32(hdc, buf, len, &tz);
+				TextOut(hdc, -tz.cx / 2, min(WIDTH(rectangle), HEIGHT(rectangle)) / 8, buf, len);
+			};
+			// ... display day ...
+			auto display_day = [&localTime, hdc, rectangle]() {
+				SIZE tz = {} ;
+				TCHAR buf[BUFSIZ] = {};
+				SecureZeroMemory(buf, sizeof buf);
+				if (HEIGHT(rectangle) < 300 || WIDTH(rectangle) < 300) {
+					_stprintf(buf, TEXT("%.3s"), days(localTime));
+				}
+				else {
+					_tcscpy(buf, days(localTime));
+				}
+				auto len = lstrlen(buf);
+				GetTextExtentPoint32(hdc, buf, len, &tz);
+				TextOut(hdc, -tz.cx / 2, -min(WIDTH(rectangle), HEIGHT(rectangle)) / 4, buf, len);
+			};
+			// ... display date ...
+			auto display_date = [&localTime, hdc, rectangle]() {
+				SIZE tz = {};
+				TCHAR buf[BUFSIZ] = {};
+
+				SecureZeroMemory(buf, sizeof buf);
+				if (HEIGHT(rectangle) < 300 || WIDTH(rectangle) < 300) {
+					_stprintf(buf, TEXT("%02d-%.3s-%d"), localTime.wDay, months(localTime), localTime.wYear);
+				}
+				else {
+					_stprintf(buf, TEXT("%s %02d, %d"), months(localTime), localTime.wDay, localTime.wYear);
+				}
+				auto len = _tcsclen(buf);
+				GetTextExtentPoint32(hdc, buf, len, &tz);
+				TextOut(hdc, -tz.cx / 2, -min(WIDTH(rectangle), HEIGHT(rectangle)) / 8, buf, len);
+			};
+			// draw points ...
+			auto draw_points = [&localTime, hdc, rectangle]() {
+				SIZE tz = {};
+				TCHAR buf[BUFSIZ] = {};
+
+				LONG radius = min(WIDTH(rectangle) / 2, HEIGHT(rectangle) / 2) - 10;
+				for (int theta = 6; theta <= 360; theta += 6) {
+					auto sx = (UINT)(radius * sin(theta * RADIAN));
+					auto sy = (UINT)(radius * cos(theta * RADIAN));
+					if (theta % 30 == 0) {
+						Ellipse(hdc, sx - 2 * POINT_DIAMETER, sy - 2 * POINT_DIAMETER, sx + 2 * POINT_DIAMETER, sy + 2 * POINT_DIAMETER);
+						//if (theta % 45 == 0) {
+						SecureZeroMemory(buf, sizeof buf);
+						_stprintf(buf, TEXT("%i"), theta / 30);
+						SIZE txtW;
+						GetTextExtentPoint32(hdc, buf, _tcsclen(buf), &txtW);
+						SetTextAlign(hdc, TA_BASELINE | TA_CENTER);
+						sx = (UINT)((radius - 25) * sin(theta * RADIAN));
+						sy = (UINT)((radius - 25) * cos(theta * RADIAN));
+						TextOut(hdc, sx - txtW.cx / 2, sy - txtW.cy / 2, buf, _tcsclen(buf));
+						//}
+					}
+					else {
+						auto obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+						DBJ_ASSERT(obj != NULL);
+						DBJ_ASSERT(obj != HGDI_ERROR);
+						Ellipse(hdc, sx - POINT_DIAMETER, sy - POINT_DIAMETER, sx + POINT_DIAMETER, sy + POINT_DIAMETER);
+						DeleteObject(GetStockObject(BLACK_BRUSH));
+					}
+				}
+			};
+
+			LOGFONT log_font = {};
+			// SecureZeroMemory(&lf, sizeof lf);
+			log_font.lfHeight = min(WIDTH(rectangle), HEIGHT(rectangle)) >> 4;
+			_tcscpy(log_font.lfFaceName, TEXT("Comic Sans MS"));
+
+			auto the_font = CreateFontIndirect(&log_font);
+			DBJ_ASSERT(the_font != NULL);
+
+			DBJ_ASSERT(HGDI_ERROR != SelectObject(hdc, the_font ));
+
+			display_time();
+			display_day();
+			display_date();
+			draw_points();
+
 			DeleteObject(GetStockObject(SYSTEM_FIXED_FONT));
-#if 0
-			POINT pMin, pSec, pHour;
-			radius -= 4 * POINT_DIAMETER;
-			pSec.y = (LONG)(radius * cos(localTime.wSecond * 6 * RADIAN));
-			pSec.x = (LONG)(radius * sin(localTime.wSecond * 6 * RADIAN));
-			radius -= 6 * POINT_DIAMETER;
-			pMin.y = (LONG)(radius * cos(localTime.wMinute * 6 * RADIAN));
-			pMin.x = (LONG)(radius * sin(localTime.wMinute * 6 * RADIAN));
-			radius -= 8 * POINT_DIAMETER;
 
-			pHour.y = (LONG)(radius * cos(localTime.wHour * 30 * RADIAN));
-			pHour.x = (LONG)(radius * sin(localTime.wHour * 30 * RADIAN));
-
-			// ... draw hands ...
-			Line(hdc, 0, 0, pHour.x, pHour.y, Gdiplus::Color::DarkGray, HOUR_WIDTH);
-			Line(hdc, 0, 0, pMin.x, pMin.y,   Gdiplus::Color::DarkGray, MINUTE_WIDTH);
-			Line(hdc, 0, 0, pSec.x, pSec.y,   Gdiplus::Color::Black, SECOND_WIDTH);
-#endif
-			clock_hands_draw(hdc);
-
-			obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
-
-			DBJ_ASSERT(obj != NULL);
-			DBJ_ASSERT(obj != HGDI_ERROR);
-
+			auto obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
+				clock_hands_draw(hdc);
 			Ellipse(hdc, -(POINT_DIAMETER * 2), -(POINT_DIAMETER * 2), POINT_DIAMETER * 2, POINT_DIAMETER * 2);
 			DeleteObject(GetStockObject(BLACK_BRUSH));
 
-			DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, obj));
-#if DBJ_USE_SOUNDS
-			// ... play sound ...
-			if (bSound & !fMoving) {
-				if (localTime.wSecond & 1) {
-					PlaySound(MAKEINTRESOURCE(IDR_TOCK), hInst, SND_SYNC | SND_RESOURCE);
-					//tock->Stop();
-					//tick->Play();
-				}
-				else {
-					PlaySound(MAKEINTRESOURCE(IDR_TICK), hInst, SND_SYNC | SND_RESOURCE);
-					//tick->Stop();
-					//tock->Play();
-				}
-			}
-#endif
+			// DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, obj));
+			if (obj != NULL && obj != HGDI_ERROR)
+				::DeleteObject(obj);
+
 			EndPaint(hWnd, &ps);
-		} break;
+		} 
+		break;
 
 		case WM_TIMER:
 			InvalidateRect(hWnd, NULL, TRUE);
 			break;
 		
 		case WM_SIZE: {
+			RECT rectangle = {};
 			if (~fCircle && fResized) {
 				SetWindowLong(hApp, GWL_STYLE, WS_BORDER | WS_VISIBLE | WS_SIZEBOX);
-				GetWindowRect(hApp, &r);
-				HRGN hEll = CreateRectRgn(0, 0, r.right - r.left, r.bottom - r.top);
+				GetWindowRect(hApp, &rectangle);
+				HRGN hEll = CreateRectRgn(0, 0, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top);
 				SetWindowRgn(hWnd, hEll, TRUE);
-				SetWindowPos(hWnd, NULL, r.left, r.top, WIDTH(r), HEIGHT(r), SWP_FRAMECHANGED);
+				SetWindowPos(hWnd, NULL, rectangle.left, rectangle.top, WIDTH(rectangle), HEIGHT(rectangle), SWP_FRAMECHANGED);
 			}
 			InvalidateRect(hApp, NULL, TRUE);
 			fResized = TRUE;

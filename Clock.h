@@ -2,12 +2,7 @@
 
 constexpr static auto OPACITY = 180;
 constexpr static auto FACTOR = 40;
-/*
-#define HOUR_WIDTH			10
-#define MINUTE_WIDTH		6
-#define SECOND_WIDTH		3
-*/
-constexpr static INT POINT_DIAMETER = 4;
+constexpr static auto POINT_DIAMETER = 4;
 constexpr static auto WIDTH(RECT r) {	return		(r.right - r.left);}
 constexpr static auto HEIGHT(RECT r) {	return		(r.bottom - r.top);}
 constexpr static auto IDM_TOPMOST = 2016;
@@ -27,34 +22,10 @@ constexpr static auto  RADIAN = 0.017453292519943295;
 namespace dbj {
 
 
-	//Returns the last Win32 error, in string format. Returns an empty string if there is no error.
-	DBJ_INLINE std::string getLastErrorMessage
-	(
-		DWORD errorMessageID = ::GetLastError()
-	)
-	{
-		//Get the error message, if any.
-		if (errorMessageID == 0)
-			return std::string(); //No error message has been recorded
 
-		LPSTR messageBuffer = nullptr;
-		size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
-
-		std::string message(messageBuffer, size);
-
-		//Free the buffer.
-		LocalFree(messageBuffer);
-
-		return message;
-	}
 
 	DBJ_INLINE void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
 	{
-		////int width = 20;
-		//int dx = 0;
-		// POINT pt[] = { sx, sy, ex, ey, ex - dx, ey - dx, ex + dx, ey + dx, ex, ey, sx, sy };
-		// Polyline(hdc, pt, 6);
 		Gdiplus::Graphics g(hDC);
 		g.SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
 		auto calculated_color = Gdiplus::Color::Color(clr);
