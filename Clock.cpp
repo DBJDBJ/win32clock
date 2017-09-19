@@ -325,7 +325,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						DBJ_ASSERT(obj != NULL);
 						DBJ_ASSERT(obj != HGDI_ERROR);
 						Ellipse(hdc, sx - POINT_DIAMETER, sy - POINT_DIAMETER, sx + POINT_DIAMETER, sy + POINT_DIAMETER);
-						DeleteObject(GetStockObject(BLACK_BRUSH));
 					}
 				}
 			};
@@ -345,16 +344,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			display_date();
 			draw_points();
 
-			DeleteObject(GetStockObject(SYSTEM_FIXED_FONT));
-
 			auto obj = SelectObject(hdc, GetStockObject(BLACK_BRUSH));
 				clock_hands_draw(hdc);
 			Ellipse(hdc, -(POINT_DIAMETER * 2), -(POINT_DIAMETER * 2), POINT_DIAMETER * 2, POINT_DIAMETER * 2);
-			DeleteObject(GetStockObject(BLACK_BRUSH));
-
-			// DBJ_ASSERT( HGDI_ERROR != SelectObject(hdc, obj));
-			if (obj != NULL && obj != HGDI_ERROR)
-				::DeleteObject(obj);
 
 			EndPaint(hWnd, &ps);
 		} 
