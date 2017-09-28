@@ -8,24 +8,24 @@ https://stackoverflow.com/questions/16647278/minimal-implementation-of-sprintf-o
 #include <windows.h>
 */
 #include "stdafx.h"
+#ifdef DBJ_MICRO_PRINTF
 namespace dbj {
+
+	namespace {
 
 #ifdef BUFSIZ
 	constexpr auto BUFFER_SIZE = BUFSIZ * 2;
 #else
-	constexpr auto BUFFER_SIZE = 2048 * 2;
+	constexpr auto BUFFER_SIZE = 512 * 2;
 #endif
 
-
-
-
 	template<typename CHAR_TYPE, size_t size = BUFSIZ>
-	inline constexpr auto create_auto_buffer (CHAR_TYPE(&arr)[size]) { 
-		const auto first = arr[0] ;  
+	inline constexpr auto create_vector_buffer(CHAR_TYPE(&arr)[size]) {
+		const auto first = arr[0];
 		return std::vector<CHAR_TYPE>(size);
 	}
 
-	static int normalize(double *val) {
+	inline int normalize(double *val) {
 		int exponent = 0;
 		double value = *val;
 
@@ -42,7 +42,7 @@ namespace dbj {
 		return exponent;
 	}
 
-	static void ftoa_fixed(char (&the_buffer)[BUFFER_SIZE], double value) {
+	inline void ftoa_fixed(char(&the_buffer)[BUFFER_SIZE], double value) {
 		/* carry out a fixed conversion of a double value to a string, with a precision of 5 decimal digits.
 		* Values with absolute values less than 0.000001 are rounded to 0.0
 		* Note: this blindly assumes that the buffer will be large enough to hold the largest possible result.
@@ -70,7 +70,7 @@ namespace dbj {
 
 		int digit = 0;
 		while (exponent > 0) {
-			digit =  static_cast<int>(value * 10);
+			digit = static_cast<int>(value * 10);
 			*buffer++ = digit + '0';
 			value = value * 10 - digit;
 			++places;
@@ -97,7 +97,7 @@ namespace dbj {
 		*buffer = '\0';
 	}
 
-	static void ftoa_sci(char *buffer, double value) {
+	inline void ftoa_sci(char *buffer, double value) {
 		int exponent = 0;
 		int places = 0;
 		static const int width = 4;
@@ -132,8 +132,7 @@ namespace dbj {
 		*buffer++ = 'e';
 		_itoa_s(exponent, buffer, BUFFER_SIZE, 10);
 	}
-	
-	int fprintf(FILE *file, char const *fmt, va_list arg) {
+inline int fprintf(FILE *file, char const *fmt, va_list arg) {
 
 		int int_temp;
 		char char_temp;
@@ -197,7 +196,14 @@ namespace dbj {
 					fputs(buffer, file);
 					length += strlen(buffer);
 					break;
-				}
+				default:
+					/* just ignore the unhandled format specifier
+					   print '?' in its place
+					*/
+					fputc('?', file);
+					length++;
+					break;
+				} // switch
 			}
 			else {
 				putc(ch, file);
@@ -207,25 +213,27 @@ namespace dbj {
 		return length;
 	}
 
-	int printf(char const *fmt, ...) {
+} // namespace
+
+inline int fprintf(FILE *file, char const *fmt, ...) {
 		va_list arg;
 		int length;
 
 		va_start(arg, fmt);
-		length = dbj::fprintf(stdout, fmt, arg);
+		length = fprintf(file, fmt, arg);
 		va_end(arg);
 		return length;
 	}
 
-	int fprintf(FILE *file, char const *fmt, ...) {
-		va_list arg;
-		int length;
+inline int printf(char const *fmt, ...) {
+	va_list arg;
+	int length;
 
-		va_start(arg, fmt);
-		length = dbj::fprintf(file, fmt, arg);
-		va_end(arg);
-		return length;
-	}
+	va_start(arg, fmt);
+	length = dbj::fprintf(stdout, fmt, arg);
+	va_end(arg);
+	return length;
+}
 
 
 } // namespace dbj
@@ -237,7 +245,7 @@ extern int microprintftest() {
 
 	double floats[] = { 0.0, 1.234e-10, 1.234e+10, -1.234e-10, -1.234e-10 };
 
-	dbj::printf("%s, %d, %x\n", "Some string", 1, 0x1234);
+	dbj::printf("%s, %d, %x \n", "Some string", 1, 0x1234);
 
 	for (int i = 0; i < sizeof(floats) / sizeof(floats[0]); i++)
 		dbj::printf("%f, %e\n", floats[i], floats[i]);
@@ -246,3 +254,5 @@ extern int microprintftest() {
 }
 
 #endif
+
+#endif // DBJ_MICRO_PRINTF
