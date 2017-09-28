@@ -18,8 +18,9 @@ namespace dbj {
 	namespace dbg {
 
 		template <typename T>
-		DBJ_INLINE
-		constexpr auto sizeof_array(const T& iarray) {
+		inline
+		constexpr 
+			auto sizeof_array(const T& iarray) {
 			return (sizeof(iarray) / sizeof(iarray[0]));
 		}
 
