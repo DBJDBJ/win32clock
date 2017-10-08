@@ -17,13 +17,15 @@ using namespace Gdiplus;
 
 #include "resource.h"
 
-/*
-dbj begins here
-*/
 #include <crtdbg.h>
 #include <tchar.h>
 #include <string>
 #include <vector>
+#include <memory>
+#include <optional>
+/*
+dbj begins here
+*/
 // inline is the keyword, in C++ and C99.
 #define DBJ_INLINE inline
 #define DBJ_USE_SOUNDS  1==0
@@ -65,9 +67,9 @@ namespace dbj {
 	terminator is found within the first MAXLEN characters, return MAXLEN.
 	Inspired by: https://opensource.apple.com/source/bash/bash-80/bash/lib/sh/strnlen.c
 	*/
-	DBJ_INLINE size_t strnlen(register const char *s, size_t maxlen)
+	DBJ_INLINE size_t strnlen(const char *s, size_t maxlen)
 	{
-		register const char *e = {};
+		const char *e = {};
 		size_t n = {};
 
 		for (e = s, n = 0; *e && n < maxlen; e++, n++)
