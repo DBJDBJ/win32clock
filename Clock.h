@@ -21,7 +21,13 @@ constexpr static auto  RADIAN = 0.017453292519943295;
 
 namespace dbj {
 
+/*
 
+Show hide icons on the taskbar (of anything we have HWND of)
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
+
+*/
 
 
 	DBJ_INLINE void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
