@@ -1,5 +1,19 @@
 #pragma once
+/*
+Copyright 2017 by dbj@dbj.org
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http ://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
 constexpr static auto OPACITY = 180;
 constexpr static auto FACTOR = 40;
 constexpr static auto POINT_DIAMETER = 4;
@@ -21,64 +35,52 @@ constexpr static auto  RADIAN = 0.017453292519943295;
 
 namespace dbj {
 
-/*
+	/*
 
-Show hide icons on the taskbar (of anything we have HWND of)
+	Show hide icons on the taskbar (of anything we have HWND of)
 
-https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
+	https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
 
-*/
-	template<typename T, T defval_ >
-	inline T & static_default( const T * new_ = nullptr )
-	  {
-		static T default_value = defval_ ;
-				if (new_ &&  *new_ != default_value)	
-					default_value = *new_ ;
-		return default_value;
-	  }
-
-	namespace {
-		auto smooth_user = 
-			static_default<Gdiplus::SmoothingMode, Gdiplus::SmoothingMode::SmoothingModeAntiAlias>;
-
-		auto line_capper = 
-			static_default<Gdiplus::LineCap, Gdiplus::LineCap::LineCapRound>;
-
-	}
+	*/
+	//
 
 	/*
 	The WIN32 DrawLine function wrapper
 	*/
-	class LINE {
-
+	class LINE final {
+	public:
+		using REAL = Gdiplus::REAL;
+		using SmoothingMode = Gdiplus::SmoothingMode;
+		using LineCap = Gdiplus::LineCap;
+	private :
 		Gdiplus::Graphics * gfx_ = nullptr; 
 		Gdiplus::Pen * pen_ = nullptr ; 
 
+		struct dflt {
+			holder<REAL> widh{ 10 };
+			holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
+			holder<LineCap> linecap { LineCap::LineCapRound };
+		};
 
 	public:
-		static auto smoothingmode(
-			const Gdiplus::SmoothingMode * new_ = nullptr		) {
-			return smooth_user(new_);
-		}
-
-		static Gdiplus::LineCap linecap(
-			const Gdiplus::LineCap * new_ = nullptr		) {
-			return line_capper(new_);
-		}
-
 		~LINE() {
 			if (gfx_ != nullptr) delete gfx_; gfx_ = nullptr;
 			if (pen_ != nullptr) delete pen_; pen_ = nullptr;
 		}
-		LINE (HDC hDC, Gdiplus::ARGB clr, Gdiplus::REAL width )
+		LINE (HDC hDC, Gdiplus::ARGB clr, Gdiplus::REAL width = 0)
 		{	
 			gfx_ = new Gdiplus::Graphics{ hDC } ;
+			if (width < 1) width = default_width();
 			pen_ = new  Gdiplus::Pen(Gdiplus::Color::Color(clr), width) ;
 		}
 
 		void operator () ( int sx, int sy, int ex, int ey, Gdiplus::REAL width = 0) {
-			gfx_->SetSmoothingMode(LINE::smoothingmode());
-			pen_->SetEndCap(LINE::linecap());
+			gfx_->SetSmoothingMode(
+				default_smoothing(nullptr)
+			);
+			pen_->SetEndCap(
+				default_linecap(nullptr)
+			);
 
 			if (width > 0)
 				pen_->SetWidth(width);
@@ -86,7 +88,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
 			gfx_->DrawLine(pen_, sx, sy, ex, ey);
 		}
 	};
-
+#if 0
 	DBJ_INLINE void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
 	{
 		/*
@@ -100,7 +102,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
 		LINE liner_(hDC, clr, w);
 		liner_(sx, sy, ex, ey);
 	}
-
+#endif
 	DBJ_INLINE  const TCHAR * const days( SYSTEMTIME & time_ ) noexcept {
 		constexpr static TCHAR * days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
 		return days[ time_.wDayOfWeek ];
@@ -169,8 +171,8 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
 
 
 		// ... draw hands ...
-		LINE liner_(hdc, Gdiplus::Color::DarkGray, HOUR_WIDTH );
-			 liner_(0, 0, pHour.x, pHour.y              );
+		LINE liner_(hdc, Gdiplus::Color::DarkGray);
+			 liner_(0, 0, pHour.x, pHour.y, HOUR_WIDTH  );
 			 liner_(0, 0, pMin.x,  pMin.y,  MINUTE_WIDTH);
 			 liner_(0, 0, pSec.x,  pSec.y,  SECOND_WIDTH);
 /*

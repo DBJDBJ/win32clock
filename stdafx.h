@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "targetver.h"
+// #include "targetver.h"
 
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
@@ -30,6 +30,12 @@ dbj begins here
 #define DBJ_INLINE inline
 #define DBJ_USE_SOUNDS  1==0
 #define DBJ_ASSERT /*_ASSERTE*/
+
+#ifdef __cpp_lib_is_final
+#define DBJ_FINAL final
+#else
+#define DBJ_FINAL
+#endif
 
 // temporary place for a commomn core code
 namespace dbj {
@@ -123,4 +129,5 @@ namespace dbj {
 }
 
 #include "dbjtrace.h"
+#include "dbj_holder.h"
 

@@ -41,6 +41,9 @@
     <ClInclude Include="dbjtrace.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dbj_holder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="w32clock.rc">
