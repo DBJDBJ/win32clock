@@ -37,6 +37,9 @@ dbj begins here
 #define DBJ_FINAL
 #endif
 
+#include "dbjtrace.h"
+#include "dbj_holder.h"
+
 // temporary place for a commomn core code
 namespace dbj {
 
@@ -82,14 +85,7 @@ namespace dbj {
 			;
 		return n;
 	}
-	/*
-	Tame the full path filenames  in __FILE__
-	https://stackoverflow.com/questions/8487986/file-macro-shows-full-path/8488201#8488201
-	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
-	*/
-	DBJ_INLINE constexpr auto nicer_filename(const char * filename) {
-		return (strrchr(filename, '\\') ? strrchr(filename, '\\') + 1 : filename);
-	}
+
 
 	namespace sysinfo {
 
@@ -128,6 +124,5 @@ namespace dbj {
 
 }
 
-#include "dbjtrace.h"
-#include "dbj_holder.h"
+
 

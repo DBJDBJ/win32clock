@@ -21,91 +21,161 @@ limitations under the License.
 using namespace Gdiplus;
 #pragma comment(lib, "Gdiplus.lib")
 
+#include <assert.h>
+
+#include <functional>
+#include <utility>
+
 namespace dbj {
-	template<typename T>
-	class holder {
-		T default_value_{};
-		holder();
-		holder(const holder &);
-		holder(const holder &&);
-		holder &  operator = (const holder &);
-		holder && operator = (const holder &&);
-	public:
-		holder(const T & defval_) : default_value_(defval_) {
-			// default_value_ = defval_;
-		};
-		const T & operator () () const noexcept {
-			return default_value_;
-		}
-		const T & operator () (const T & new_ = default_value_) noexcept {
-			if (new_ != default_value_)
-				default_value_ = new_;
-			return default_value_;
-		}
+	
+	/*
+	Task: implement this for any type
+	*/
+	inline int default_int_width(int new_ = 1) {
+		static int dflt_ = new_;
+		if (new_ != dflt_) dflt_ = new_;
+		return new_;
+	}
+
+#pragma region "Version THREE"
+/*
+No stunts. A plain old function object. 
+Simple usable and working
+*/
+template<typename T>
+class holder {
+	// mutable members of const class instances are modifiable
+	mutable T default_value_{};
+	// in version 0.1 hide ctors, movers and copiers
+	holder();
+	holder(const holder &);
+	holder(const holder &&);
+	holder &  operator = (const holder &);
+	holder && operator = (const holder &&);
+public:
+	holder(const T & defval_) : default_value_(defval_) {
 	};
 
-	//
-	template<typename T>
-	inline auto holder_maker(T defval_) {
-		return [&](const T * new_ = nullptr)
-		{
-			static T default_value = defval_;
-			if (new_ && *new_ != default_value)
-				default_value = *new_;
-			return default_value;
-		};
-	};
-
-	//
-	template< typename T, T defval_ >
-	inline T & static_default(const T * new_ = nullptr)
+	const T & operator () () const noexcept {
+		return default_value_;
+	}
+	/*
+	please read 
+	https://msdn.microsoft.com/en-us/library/031k84se.aspx
+	to understand the operator declaration bellow
+	it allows for const isntances to be used 
+	through the operator bellow 
+	    const holder<REAL> width{ 10 };
+		width(1024) ; // OK
+	*/
+	const volatile T & operator () 
+		(const T & new_ ) const volatile noexcept 
 	{
-		static T default_value = defval_;
-		if (new_ != nullptr)
-			default_value = static_cast<T>(*new_);
-		return default_value;
+		if (new_ != default_value_)
+			default_value_ = new_;
+		return default_value_;
 	}
+};
+namespace {
+	using namespace Gdiplus;
+			
+	    // test the const onstance behaviour
+	struct S {
+		holder<REAL> width{ 10 };
+	};
 
-	namespace {
-		using namespace Gdiplus;
+	const S konst_;
 
-		/*
-		works but delivers just a default value for a repeated use.
-		there is no function  to re-use
-		*/
-		const auto sm = static_default<SmoothingMode, SmoothingMode::SmoothingModeAntiAlias>();
+		holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
+		holder<LineCap> linecap{ LineCap::LineCapRound };
 
-		/*
-		inline auto smoothingmode(	const Gdiplus::SmoothingMode * new_ = nullptr ) {
-		return default_smoothing(new_);
+		inline auto usage() {
+			auto width_ = konst_.width( 1024 );
+			const auto w1_ = konst_.width();
+			auto w2_ = konst_.width();
+
+			assert(width_ == 1024);
+			assert(w2_ == w1_ == width_);
+
+			auto lc_ = linecap();
+			return smoothnes();
 		}
-
-		inline auto linecap( const Gdiplus::LineCap * new_ = nullptr ) {
-		return default_linecap(new_);
-		}
-		*/
-
-		/* pointer to template function instances
-		using auto gives much simpler and shorter code
-		this works but we loose the default argument feature  on function pointers
-		declared this way
-		*/
-		auto default_smoothing = static_default<SmoothingMode, SmoothingMode::SmoothingModeAntiAlias>;
-		auto default_linecap = static_default<LineCap, LineCap::LineCapRound>;
-
-		/*
-		also there is aproblem here ...
-
-		error C3535: cannot deduce type for 'auto' from 'overloaded-function'
-		error C2440: 'initializing': cannot convert from 'T &(__cdecl *)(const T *)' to 'int'
-		note: Context does not allow for disambiguation of overloaded function
-
-		auto default_problem = static_default < REAL, REAL{10} > ;
-
-		above template instance is not "different enough" from two previous ones
-		*/
-
-		auto default_width = holder_maker<Gdiplus::REAL>(10);
-	}
 
 }
+#pragma endregion "Version THREE"
+
+#pragma region "Version TWO"
+/*
+Function template returning a lambda
+Closer to real stunt, but works
+And compiler has less problems disambiguating the instances
+*/
+template<typename T>
+inline auto holder_maker(T defval_) {
+	// no T new_ = defval_ will not compile, try...
+	return [&](const T * new_ = nullptr )
+	{
+		static T default_value = defval_;
+		if (new_ && *new_ != default_value)
+			default_value = *new_;
+		return default_value;
+	};
+};
+
+namespace {
+	using namespace Gdiplus;
+
+	auto default_smoot = holder_maker<SmoothingMode>(SmoothingMode::SmoothingModeAntiAlias);
+	auto default_lncap = holder_maker<LineCap>(LineCap::LineCapRound);
+	auto default_width = holder_maker<Gdiplus::REAL>(10);
+
+}
+#pragma endregion "Version TWO" 
+
+#pragma region "Version ONE"
+/* version ONE */
+#if 0
+template< typename T, T defval_ >
+inline T & static_default(const T * new_ = nullptr )
+{
+	static T default_value = defval_;
+	if (new_ != nullptr)
+		default_value = static_cast<T>(*new_);
+	return default_value;
+}
+#endif
+
+template< typename T, T defval_ = T() >
+inline T & static_default(const T & new_ = defval_ )
+{
+	static T default_value = defval_;
+	if (new_ != default_value)
+		default_value =  new_ ;
+	return default_value;
+}
+
+namespace {
+	using namespace Gdiplus;
+
+	const auto sm0 = static_default<SmoothingMode, SmoothingMode::SmoothingModeAntiAlias>();
+	const auto sm1 = static_default<SmoothingMode>();
+		
+	auto sm2 = static_default<SmoothingMode, SmoothingMode::SmoothingModeAntiAlias>;
+	auto lc0 = static_default<LineCap, LineCap::LineCapRound>;
+	auto sm3 = static_default<SmoothingMode>;
+	auto dlcF = static_default<LineCap>;
+
+	auto dlc = dlcF(LineCap::LineCapRound);
+
+	/*
+	but there is a problem here ...
+	auto default_problem = static_default < REAL, REAL{10} > ;
+
+	error C3535: cannot deduce type for 'auto' from 'overloaded-function'
+	error C2440: 'initializing': cannot convert from 'T &(__cdecl *)(const T *)' to 'int'
+	note: Context does not allow for disambiguation of overloaded function
+
+	above template instance is not "different enough" from two previous ones
+	*/
+}
+#pragma endregion "Version ONE"

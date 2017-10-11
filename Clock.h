@@ -60,7 +60,7 @@ namespace dbj {
 			holder<REAL> widh{ 10 };
 			holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
 			holder<LineCap> linecap { LineCap::LineCapRound };
-		};
+		} DFLT_ ;
 
 	public:
 		~LINE() {
@@ -70,16 +70,16 @@ namespace dbj {
 		LINE (HDC hDC, Gdiplus::ARGB clr, Gdiplus::REAL width = 0)
 		{	
 			gfx_ = new Gdiplus::Graphics{ hDC } ;
-			if (width < 1) width = default_width();
+			if (width < 1) width = DFLT_.widh();
 			pen_ = new  Gdiplus::Pen(Gdiplus::Color::Color(clr), width) ;
 		}
 
 		void operator () ( int sx, int sy, int ex, int ey, Gdiplus::REAL width = 0) {
 			gfx_->SetSmoothingMode(
-				default_smoothing(nullptr)
+				DFLT_.smoothnes()
 			);
 			pen_->SetEndCap(
-				default_linecap(nullptr)
+				DFLT_.linecap()
 			);
 
 			if (width > 0)
