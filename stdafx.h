@@ -14,6 +14,21 @@
 using namespace Gdiplus;
 #pragma comment(lib, "Gdiplus.lib")
 
+#ifndef __argc
+#define __argc  (*__p___argc())  // Pointer to number of command line arguments
+#endif // !__argc
+
+#ifndef __argv
+#define __argv  (*__p___argv())  // Pointer to table of narrow command line arguments
+#endif // !__argv
+
+#ifndef _wargv
+#define __wargv (*__p___wargv()) // Pointer to table of wide command line arguments
+#endif // !_wargv
+
+
+
+
 #include "resource.h"
 /*
 #include <crtdbg.h>
@@ -30,3 +45,4 @@ dbj begins here
 #include <dbj++.h>
 
 #define DBJ_USE_SOUNDS (1==0)
+#include "Clock.h"

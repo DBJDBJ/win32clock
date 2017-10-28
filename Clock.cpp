@@ -21,7 +21,6 @@ limitations under the License.
 #if DBJ_USE_SOUNDS
 #include "SoundPlayer.h"
 #endif
-#include "Clock.h"
 
 // Global Variables:
 HINSTANCE hInst;
@@ -47,7 +46,9 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-	DBJ_TRACE("%s", __argv[0]);
+	//NOTE! __wargv exist because this is _UNICODE build
+	// as evey other dbj++ app is
+	DBJ_TRACE(L"%s", __wargv[0]);
 
     HWND hWin = FindWindow(TEXT("[dbj.systems-win32.clock]"), TEXT("Clock"));
     if (hWin != NULL) {

@@ -36,73 +36,12 @@ constexpr static auto  RADIAN = 0.017453292519943295;
 namespace dbj {
 
 	/*
-
+	NOTE for later:
 	Show hide icons on the taskbar (of anything we have HWND of)
-
 	https://msdn.microsoft.com/en-us/library/windows/desktop/bb774652(v=vs.85).aspx
-
 	*/
-	//
 
-	/*
-	The WIN32 DrawLine function wrapper
-	*/
-	class LINE final {
-	public:
-		using REAL = Gdiplus::REAL;
-		using SmoothingMode = Gdiplus::SmoothingMode;
-		using LineCap = Gdiplus::LineCap;
-	private :
-		Gdiplus::Graphics * gfx_ = nullptr; 
-		Gdiplus::Pen * pen_ = nullptr ; 
 
-		struct dflt {
-			dbj::holder<REAL> widh{ 10 };
-			dbj::holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
-			dbj::holder<LineCap> linecap { LineCap::LineCapRound };
-		} DFLT_ ;
-
-	public:
-		~LINE() {
-			if (gfx_ != nullptr) delete gfx_; gfx_ = nullptr;
-			if (pen_ != nullptr) delete pen_; pen_ = nullptr;
-		}
-		LINE (HDC hDC, Gdiplus::ARGB clr, Gdiplus::REAL width = 0)
-		{	
-			gfx_ = new Gdiplus::Graphics{ hDC } ;
-			if (width < 1) width = DFLT_.widh();
-			pen_ = new  Gdiplus::Pen(Gdiplus::Color::Color(clr), width) ;
-		}
-
-		void operator () ( int sx, int sy, int ex, int ey, Gdiplus::REAL width = 0) {
-			gfx_->SetSmoothingMode(
-				DFLT_.smoothnes()
-			);
-			pen_->SetEndCap(
-				DFLT_.linecap()
-			);
-
-			if (width > 0)
-				pen_->SetWidth(width);
-
-			gfx_->DrawLine(pen_, sx, sy, ex, ey);
-		}
-	};
-#if 0
-	DBJ_INLINE void Line(HDC hDC, int sx, int sy, int ex, int ey, Gdiplus::ARGB clr, Gdiplus::REAL w)
-	{
-		/*
-		Gdiplus::Graphics g(hDC);
-		g.SetSmoothingMode(Gdiplus::SmoothingMode::SmoothingModeAntiAlias);
-		auto calculated_color = Gdiplus::Color::Color(clr);
-		Gdiplus::Pen p(calculated_color, w);
-		p.SetEndCap(Gdiplus::LineCap::LineCapRound);
-		g.DrawLine(&p, sx, sy, ex, ey);
-		*/
-		LINE liner_(hDC, clr, w);
-		liner_(sx, sy, ex, ey);
-	}
-#endif
 	DBJ_INLINE  const TCHAR * const days( SYSTEMTIME & time_ ) noexcept {
 		constexpr static TCHAR * days[] = { TEXT("Sunday"), TEXT("Monday"), TEXT("Tuesday"), TEXT("Wednesday"), TEXT("Thursday"), TEXT("Friday"), TEXT("Saturday") };
 		return days[ time_.wDayOfWeek ];
@@ -166,14 +105,16 @@ namespace dbj {
 		pMin.x = (LONG)(radius * sin(localTime.wMinute * 6 * RADIAN));
 		
 		// radius -= 8 * POINT_DIAMETER;
-		pHour.y = (LONG)(radius * cos(localTime.wHour * 30 * RADIAN));
-		pHour.x = (LONG)(radius * sin(localTime.wHour * 30 * RADIAN));
+		pHour.y = (LONG)((radius - 28) * cos(localTime.wHour * 30 * RADIAN));
+		pHour.x = (LONG)((radius - 28) * sin(localTime.wHour * 30 * RADIAN));
 
 
 		// ... draw hands ...
-		LINE liner_(hdc, Gdiplus::Color::DarkGray);
+		dbj::win32::LINE liner_(hdc, Gdiplus::Color::DarkGray);
+
 			 liner_(0, 0, pHour.x, pHour.y, HOUR_WIDTH  );
 			 liner_(0, 0, pMin.x,  pMin.y,  MINUTE_WIDTH);
+				liner_.color(Gdiplus::Color::Black);
 			 liner_(0, 0, pSec.x,  pSec.y,  SECOND_WIDTH);
 /*
 		Line(hdc, 0, 0, pHour.x, pHour.y, Gdiplus::Color::DarkGray, HOUR_WIDTH);
