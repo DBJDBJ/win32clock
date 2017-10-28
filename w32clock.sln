@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.15
+VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "w32clock", "w32clock.vcxproj", "{6B7BDD75-5CB4-4899-8D98-ADF75487A2A3}"
-EndProject
-Project("{840C416C-B8F3-42BC-B0DD-F6BB14C9F8CB}") = "clock_dbj_setup", "..\clock_dbj_setup\clock_dbj_setup.aiproj", "{99C35483-CBD1-4A56-8C5C-2802839083E3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,18 +27,6 @@ Global
 		{6B7BDD75-5CB4-4899-8D98-ADF75487A2A3}.Release|x64.Build.0 = Release|x64
 		{6B7BDD75-5CB4-4899-8D98-ADF75487A2A3}.Release|x86.ActiveCfg = Release|Win32
 		{6B7BDD75-5CB4-4899-8D98-ADF75487A2A3}.Release|x86.Build.0 = Release|Win32
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Debug|x64.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Debug|x64.Build.0 = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Debug|x86.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Debug|x86.Build.0 = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.DefaultBuild|x64.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.DefaultBuild|x64.Build.0 = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.DefaultBuild|x86.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.DefaultBuild|x86.Build.0 = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Release|x64.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Release|x64.Build.0 = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Release|x86.ActiveCfg = DefaultBuild
-		{99C35483-CBD1-4A56-8C5C-2802839083E3}.Release|x86.Build.0 = DefaultBuild
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
