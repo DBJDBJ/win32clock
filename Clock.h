@@ -57,9 +57,9 @@ namespace dbj {
 		Gdiplus::Pen * pen_ = nullptr ; 
 
 		struct dflt {
-			holder<REAL> widh{ 10 };
-			holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
-			holder<LineCap> linecap { LineCap::LineCapRound };
+			dbj::holder<REAL> widh{ 10 };
+			dbj::holder<SmoothingMode> smoothnes{ SmoothingMode::SmoothingModeAntiAlias };
+			dbj::holder<LineCap> linecap { LineCap::LineCapRound };
 		} DFLT_ ;
 
 	public:
