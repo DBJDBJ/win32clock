@@ -5,7 +5,6 @@
 #define IDB_PNG1                        101
 #define IDB_PNG2                        102
 #define IDC_CURSOR1                     103
-#define IDC_CURSOR2                     104
 #define IDI_ICON1                       105
 
 // Next default values for new objects

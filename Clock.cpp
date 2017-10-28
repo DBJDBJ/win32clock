@@ -70,7 +70,7 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     //tock = new SoundPlayer(IDR_TOCK);
 
     DWORD dwSize = 100;
-	auto user_name = dbj::sysinfo::user_name(); //  ::GetUserNameA(szUserName, &dwSize);
+	auto user_name = dbj::win32::sysinfo::user_name(); //  
     UpdateWindow(hApp);
 	/*
     HCURSOR hCur = LoadCursor(hInstance, MAKEINTRESOURCE(IDC_CURSOR1));
@@ -274,10 +274,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				SecureZeroMemory(buf, sizeof buf);
 				if (HEIGHT(rectangle) >= 300 && WIDTH(rectangle) >= 300) {
-					_stprintf(buf, TEXT("Hi %s, %s !"), dbj::sysinfo::user_name().data(), dbj::GetWelcomeMessage());
+					_stprintf(buf, TEXT("Hi %s, %s !"), dbj::win32::sysinfo::user_name().data(), dbj::GetWelcomeMessage());
 				}
 				else {
-					_stprintf(buf, TEXT("Hi %s"), dbj::sysinfo::user_name().data());
+					_stprintf(buf, TEXT("Hi %s"), dbj::win32::sysinfo::user_name().data());
 				}
 				len = _tcslen(buf);
 				GetTextExtentPoint32(hdc, buf, len, &tz);

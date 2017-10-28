@@ -8,6 +8,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 #include <windows.h>
+// GDI+
 #include <objidl.h>
 #include <gdiplus.h>
 using namespace Gdiplus;
@@ -27,4 +28,5 @@ using namespace Gdiplus;
 dbj begins here
 */
 #include <dbj++.h>
+
 #define DBJ_USE_SOUNDS (1==0)
